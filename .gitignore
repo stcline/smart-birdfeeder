@@ -1,0 +1,45 @@
+# Environment variables
+config/.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Database (local instance — schema files are tracked)
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+logs/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Media (stored on NAS, not in repo)
+clips/
+snapshots/
+*.mp4
+*.h264
+*.jpg
+*.jpeg
+*.png
+
+# Fusion 360 autosave
+*.f3d~
