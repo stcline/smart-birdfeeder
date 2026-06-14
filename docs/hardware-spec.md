@@ -16,10 +16,15 @@ This document captures all hardware decisions made during the initial design pha
 
 | Component | Model | Notes |
 |---|---|---|
-| PoE HAT | Waveshare PoE HAT (H) | Pi 5–native C-shaped design; clears the Official Active Cooler without conflict; no onboard fan; passive metal heatsink for HAT board; 802.3af/at compliant; 5V 5A output; ~$21.99 from Waveshare |
-| Power source | PoE-capable network switch or injector | Must be IEEE 802.3af/at compliant, minimum 25W port output; eliminates need for separate power cable run to enclosure |
+| AC-DC converter | Mean Well IRM-30-5 | 5V / 6A / 30W; encapsulated, screw terminals; mounted in a separate weatherproof junction box on the post near the outlet — not inside the birdfeeder enclosure; ~$14 |
+| AC power source | Existing outdoor outlet at post | Standard 3-prong outlet; converter AC side wired L (black/hot), N (white/neutral); bare ground capped or tied to metal box |
+| DC wiring | 18 AWG stranded, red/black, UV-rated | Runs from converter junction box to birdfeeder enclosure via coupler and IP68 cable gland |
+| Inline fuse | 5A mini blade fuse, weatherproof holder | On DC positive line between converter and enclosure |
+| DC coupler | User-supplied | Allows birdfeeder enclosure to be disconnected from power without cutting wires |
+| Cable gland | IP68, M20 | Single DC cable penetration on bottom or side face of enclosure |
+| Pi connection | GPIO header — Pin 2 (5V) + Pin 6 (GND) | Bypasses USB-C; direct regulated DC to GPIO. **Verify polarity before powering on — no reverse-polarity protection on this path** |
 
-> **Note:** A standard 5V weatherproof supply is a valid alternative if PoE is not available at the installation location.
+> **Note:** PoE was considered but not used — no Ethernet run is available at the installation location. Network connectivity is via the Pi 5's built-in Wi-Fi.
 
 ---
 
@@ -29,9 +34,8 @@ Three-layer cooling strategy for outdoor enclosure use (Cypress, CA — high amb
 
 | Component | Model | Purpose | Control |
 |---|---|---|---|
-| SoC cooler | [Official Raspberry Pi Active Cooler](https://www.raspberrypi.com/products/active-cooler/) | Cools Pi 5 SoC directly; mounts in the Waveshare HAT (H) cutout | Pi firmware — automatic PWM |
+| SoC cooler | [Official Raspberry Pi Active Cooler](https://www.raspberrypi.com/products/active-cooler/) | Cools Pi 5 SoC directly; mounts directly on Pi 5 — no HAT in this build | Pi firmware — automatic PWM |
 | Enclosure exhaust fan | [Noctua NF-A4x10 5V PWM](https://www.amazon.com/Noctua-NF-A4x10-5V-PWM-Premium/dp/B07DXS86G7/) (ASIN: B07DXS86G7) | Exhausts hot air from electronics compartment through louvered vent | GPIO PWM script — temperature-triggered (~65°C on, 100% at 75°C+) |
-| HAT heatsink | Waveshare PoE HAT (H) onboard metal heatsink | Passive cooling of HAT board | Passive |
 
 ### Enclosure Cooling Design Notes
 - Electronics compartment is physically separated from birdseed compartment by an internal partition
@@ -43,7 +47,7 @@ Three-layer cooling strategy for outdoor enclosure use (Cypress, CA — high amb
 - Pi SoC temperature is monitored via `vcgencmd measure_temp` and surfaced in the dashboard
 
 ### Full Stack Height
-The Pi 5 + Waveshare PoE HAT (H) + Official Active Cooler stacked height must be confirmed from Waveshare's spec sheet before finalizing the electronics compartment height in Fusion 360.
+The Pi 5 + Official Active Cooler stacked height should be confirmed from the Raspberry Pi documentation before finalizing the electronics compartment height in Fusion 360.
 
 ---
 
@@ -108,9 +112,13 @@ No additional audio hardware is planned for this project. The Haikubox handles a
 |---|---|---|
 | Raspberry Pi 5 (4GB or 8GB) | raspberrypi.com / Amazon | $60–80 |
 | Official Pi 5 Active Cooler | raspberrypi.com / Amazon | $5 |
-| Waveshare PoE HAT (H) | waveshare.com / Amazon | $22 |
 | Noctua NF-A4x10 5V PWM (ASIN: B07DXS86G7) | [Amazon](https://www.amazon.com/dp/B07DXS86G7) | $16 |
 | Pi Camera Module 3 (standard) — or Arducam 64MP | raspberrypi.com / Amazon | $25–50 |
+| Mean Well IRM-30-5 AC-DC converter | Amazon / Digi-Key | $14 |
+| Weatherproof junction box for converter (post-mount) | Amazon | $8–12 |
+| Weatherproof in-use outlet cover | Amazon | $8 |
+| 18 AWG stranded DC wire, red/black, UV-rated | Amazon | $8 |
+| 5A inline fuse holder, weatherproof | Amazon | $5 |
+| IP68 M20 cable gland | Amazon | $2 |
 | BSS138 logic level shifter module | Amazon | $2 |
-| PoE switch or injector (802.3af/at, 25W+) | Amazon / networking supplier | $30–80 |
-| Weatherproof cable glands, IP66 hardware | Amazon | $10–20 |
+| Stainless M3/M4 hardware (screws, nuts) | Amazon / hardware store | $5 |
