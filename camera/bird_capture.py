@@ -14,7 +14,7 @@ import os
 import time
 import logging
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from datetime import datetime
 from picamera2 import Picamera2, Preview
 from libcamera import controls
@@ -38,7 +38,19 @@ CAPTURE_RESOLUTION = (4056, 3040)
 # Lower = more sensitive (more false triggers)
 # Higher = less sensitive (may miss small birds)
 MOTION_THRESHOLD = 25       # pixel difference to count as changed
-MOTION_MIN_PIXELS = 500     # minimum changed pixels to trigger capture
+MOTION_MIN_PIXELS = 150     # lowered — only claws visible on initial landing
+
+# Perch ROI — polygon defining the feeder perch area in lores (640x480) coords
+# Only motion inside this polygon triggers a capture
+# Coordinates defined from reference frame (before 180° rotation applied to captures)
+PERCH_ROI = [
+    (0,   0),
+    (640, 0),
+    (640, 123),
+    (454, 145),
+    (205, 145),
+    (0,   127),
+]
 
 # Cooldown between captures (seconds) — prevents burst captures of same bird
 CAPTURE_COOLDOWN = 5
@@ -92,6 +104,19 @@ def init_camera():
     return cam
 
 
+# ─── ROI MASK ────────────────────────────────────────────────────────────────
+def build_roi_mask(polygon, frame_size=(480, 640)):
+    """
+    Build a boolean numpy mask from a polygon defined in (x, y) coords.
+    True inside the polygon (the perch zone), False outside.
+    """
+    img = Image.new("L", (frame_size[1], frame_size[0]), 0)
+    ImageDraw.Draw(img).polygon(polygon, fill=255)
+    mask = np.array(img, dtype=bool)
+    log.info(f"ROI mask built — {mask.sum()} pixels in perch zone")
+    return mask
+
+
 # ─── BACKGROUND MODEL ─────────────────────────────────────────────────────────
 def build_background(cam, n_frames=BACKGROUND_FRAMES):
     """
@@ -113,9 +138,10 @@ def build_background(cam, n_frames=BACKGROUND_FRAMES):
 
 
 # ─── MOTION DETECTION ─────────────────────────────────────────────────────────
-def detect_motion(cam, background):
+def detect_motion(cam, background, roi_mask):
     """
     Compare current lores frame against background model.
+    Only pixels inside the perch ROI polygon are evaluated.
     Returns True if significant motion is detected.
     """
     frame = cam.capture_array("lores")
@@ -124,8 +150,8 @@ def detect_motion(cam, background):
     # Absolute difference from background
     diff = np.abs(y_channel - background)
 
-    # Count pixels that changed more than the threshold
-    changed_pixels = np.sum(diff > MOTION_THRESHOLD)
+    # Only count changed pixels inside the perch polygon
+    changed_pixels = np.sum((diff > MOTION_THRESHOLD) & roi_mask)
 
     return changed_pixels > MOTION_MIN_PIXELS, changed_pixels
 
@@ -158,6 +184,7 @@ def main():
     log.info(f"Saving images to: {SAVE_DIR}")
 
     cam = init_camera()
+    roi_mask = build_roi_mask(PERCH_ROI)
     background = build_background(cam)
 
     last_capture_time = 0
@@ -166,7 +193,7 @@ def main():
 
     try:
         while True:
-            motion_detected, changed_pixels = detect_motion(cam, background)
+            motion_detected, changed_pixels = detect_motion(cam, background, roi_mask)
 
             if motion_detected:
                 now = time.time()
@@ -178,7 +205,7 @@ def main():
                     # Rebuild background after capture to account for
                     # perch state change (bird now present)
                     time.sleep(1)
-                    background = build_background(cam)
+                    background = build_background(cam)  # roi_mask unchanged
                 else:
                     remaining = CAPTURE_COOLDOWN - (now - last_capture_time)
                     log.debug(f"Motion detected but in cooldown "
