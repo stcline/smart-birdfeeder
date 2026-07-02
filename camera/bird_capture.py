@@ -14,6 +14,7 @@ import os
 import time
 import logging
 import numpy as np
+from PIL import Image
 from datetime import datetime
 from picamera2 import Picamera2, Preview
 from libcamera import controls
@@ -136,7 +137,13 @@ def capture_bird(cam):
     filename = f"bird_{timestamp}.jpg"
     filepath = os.path.join(SAVE_DIR, filename)
 
-    metadata = cam.capture_file(filepath)
+    # Rotate 180° — camera is mounted inverted in enclosure
+    request = cam.capture_request()
+    image = request.make_image("main")
+    request.release()
+    image = image.rotate(180)
+    image.save(filepath)
+    metadata = cam.capture_metadata()
 
     log.info(f"Captured: {filename} | "
              f"Exposure={metadata.get('ExposureTime','?')}µs | "
