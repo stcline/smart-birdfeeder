@@ -1,0 +1,17 @@
+[Unit]
+Description=Smart Birdfeeder Bird Capture Service
+After=network.target
+After=multi-user.target
+
+[Service]
+Type=simple
+User=steve
+WorkingDirectory=/home/steve/birdfeeder
+ExecStart=/usr/bin/python3 /home/steve/birdfeeder/bird_capture.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
