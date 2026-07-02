@@ -37,8 +37,8 @@ CAPTURE_RESOLUTION = (4056, 3040)
 # Motion detection sensitivity
 # Lower = more sensitive (more false triggers)
 # Higher = less sensitive (may miss small birds)
-MOTION_THRESHOLD = 25       # pixel difference to count as changed
-MOTION_MIN_PIXELS = 500     # minimum changed pixels to trigger capture
+MOTION_THRESHOLD = 75       # pixel difference to count as changed
+MOTION_MIN_PIXELS = 3000     # minimum changed pixels to trigger capture
 
 # Cooldown between captures (seconds) — prevents burst captures of same bird
 CAPTURE_COOLDOWN = 5
