@@ -1,0 +1,12 @@
+# Smart Birdfeeder — Python dependencies
+# Install on Pi with: sudo apt install python3-numpy python3-pil python3-requests python3-dotenv
+
+# Core
+numpy
+Pillow
+requests
+python-dotenv
+
+# Camera (installed via apt on Pi OS Bookworm — not pip)
+# picamera2
+# libcamera

@@ -11,13 +11,24 @@ Author:   Smart Birdfeeder Project
 """
 
 import os
+import sys
 import time
 import logging
 import numpy as np
 from PIL import Image, ImageDraw
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from config/.env
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "config", ".env"))
+
 from picamera2 import Picamera2, Preview
 from libcamera import controls
+
+# Add project root to path for database module
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from camera.identify import identify_bird
+from database.db import init_db, log_sighting
 
 # ─── SUPPRESS LIBCAMERA NOISE ────────────────────────────────────────────────
 os.environ["LIBCAMERA_LOG_LEVELS"] = "ERROR"
@@ -176,6 +187,24 @@ def capture_bird(cam):
              f"Exposure={metadata.get('ExposureTime','?')}µs | "
              f"Gain={metadata.get('AnalogueGain','?'):.2f} | "
              f"LensPos={metadata.get('LensPosition','?')}")
+
+    # ── Species identification ──────────────────────────────────────────
+    id_result = identify_bird(filepath)
+
+    # ── Log to database ────────────────────────────────────────────────
+    log_sighting(
+        timestamp=datetime.now().isoformat(),
+        image_path=filepath,
+        common_name=id_result["common_name"] if id_result else None,
+        scientific_name=id_result["scientific_name"] if id_result else None,
+        confidence=id_result["confidence"] if id_result else None,
+        taxon_id=id_result["taxon_id"] if id_result else None,
+        lens_position=metadata.get("LensPosition"),
+        exposure_us=metadata.get("ExposureTime"),
+        analogue_gain=metadata.get("AnalogueGain"),
+        source="camera"
+    )
+
     return filepath
 
 
@@ -183,6 +212,9 @@ def capture_bird(cam):
 def main():
     log.info("=== Smart Birdfeeder Capture Starting ===")
     log.info(f"Saving images to: {SAVE_DIR}")
+
+    # Initialise database
+    init_db()
 
     cam = init_camera()
     roi_mask = build_roi_mask(PERCH_ROI)
