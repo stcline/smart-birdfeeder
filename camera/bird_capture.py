@@ -20,7 +20,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from config/.env
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "config", ".env"))
+# Use absolute path so it works whether run directly or via systemd
+_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", ".env")
+load_dotenv(_ENV_PATH)
 
 from picamera2 import Picamera2, Preview
 from libcamera import controls

@@ -84,9 +84,10 @@ def log_sighting(
             allaboutbirds_url, ebird_url, timestamp
         )
 
+    conf_str = f"{confidence:.1%}" if confidence is not None else "N/A"
     log.info(
         f"Sighting logged — {common_name or 'Unknown'} "
-        f"(confidence={confidence:.1%} if confidence else 'N/A') "
+        f"(confidence={conf_str}) "
         f"[row {row_id}]"
     )
     return row_id
