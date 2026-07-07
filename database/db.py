@@ -100,7 +100,7 @@ def _update_species_registry(
     """Upsert species registry entry and increment sighting count."""
     with get_connection() as conn:
         existing = conn.execute(
-            "SELECT id FROM species WHERE taxon_id = ?", (taxon_id,)
+            "SELECT taxon_id FROM species WHERE taxon_id = ?", (taxon_id,)
         ).fetchone()
 
         if existing:
