@@ -12,8 +12,12 @@ Auth:     JWT token from https://www.inaturalist.org/users/api_token
 import os
 import logging
 import requests
+from dotenv import load_dotenv
 
 log = logging.getLogger(__name__)
+
+# Resolve .env path relative to this file — works regardless of working directory
+_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", ".env")
 
 INAT_API_BASE = "https://api.inaturalist.org/v1"
 
@@ -25,9 +29,11 @@ LOCATION_LNG = -118.0375
 
 def get_token() -> str:
     """
-    Read iNaturalist JWT token from environment.
+    Read iNaturalist JWT token from .env file directly.
+    Reloads on every call so token updates without restarting the service.
     Set INAT_API_TOKEN in your config/.env file.
     """
+    load_dotenv(_ENV_PATH, override=True)
     token = os.environ.get("INAT_API_TOKEN", "")
     if not token:
         raise EnvironmentError(
