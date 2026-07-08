@@ -40,6 +40,7 @@ from dotenv import load_dotenv
 # ─── PATHS ────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 ENV_PATH   = SCRIPT_DIR.parent / "config" / ".env"
+LOG_PATH   = Path("/home/steve/birdfeeder/token_refresh.log")
 
 # ─── LOGGING ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -47,7 +48,7 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)s  %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(str(SCRIPT_DIR.parent / "birdfeeder" / "token_refresh.log"))
+        logging.FileHandler(str(LOG_PATH))
     ]
 )
 log = logging.getLogger(__name__)
