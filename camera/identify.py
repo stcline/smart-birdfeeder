@@ -26,6 +26,12 @@ INAT_API_BASE = "https://api.inaturalist.org/v1"
 LOCATION_LAT = 33.8169
 LOCATION_LNG = -118.0375
 
+# Minimum vision_score (0.0–1.0) to accept a result.
+# 0.50 = iNaturalist needs to be at least 50% confident it's this species.
+# vision_score is the per-image ML probability; combined_score is a raw
+# ranking score that can exceed 1.0 and should NOT be used as a threshold.
+MIN_CONFIDENCE = 0.50
+
 
 def get_token() -> str:
     """
@@ -42,26 +48,26 @@ def get_token() -> str:
     return token
 
 
-def identify_bird(image_path: str, min_confidence: float = 0.10) -> dict | None:
+def identify_bird(image_path: str, min_confidence: float = MIN_CONFIDENCE) -> dict | None:
     """
     Submit a captured image to the iNaturalist Computer Vision API.
-    Returns a dict with species info if identified above min_confidence,
-    otherwise returns None.
+    Only returns a result if:
+      1. The top result is classified as a bird (iconic_taxon_name == "Aves")
+      2. The vision_score (0.0–1.0) is at or above min_confidence
 
     Args:
         image_path:      Absolute path to the captured JPEG
-        min_confidence:  Minimum confidence score to accept (0.0–1.0)
-                         Default 0.10 — logs low-confidence results but
-                         still returns them for review
+        min_confidence:  Minimum vision_score to accept (0.0–1.0)
+                         Default 0.50 — require 50% confidence
 
     Returns:
         {
             "common_name":     str,
             "scientific_name": str,
-            "confidence":      float,
+            "confidence":      float,   # vision_score, 0.0–1.0
             "taxon_id":        int,
         }
-        or None if no result above min_confidence
+        or None if no bird result above min_confidence
     """
     try:
         token = get_token()
@@ -94,7 +100,22 @@ def identify_bird(image_path: str, min_confidence: float = 0.10) -> dict | None:
 
         top = results[0]
         taxon = top.get("taxon", {})
-        confidence = top.get("combined_score", top.get("vision_score", 0))
+
+        # ── Bird-only filter ────────────────────────────────────────────────
+        # iconic_taxon_name == "Aves" means it's a bird.
+        # Without this, insects, plants, fungi, etc. can sneak through.
+        iconic = taxon.get("iconic_taxon_name")
+        if iconic != "Aves":
+            log.info(
+                f"Non-bird result filtered out: {taxon.get('name', 'Unknown')} "
+                f"(iconic_taxon_name={iconic!r})"
+            )
+            return None
+
+        # ── Use vision_score (0.0–1.0), not combined_score ─────────────────
+        # combined_score is a raw ranking number that can exceed 1.0 and
+        # is NOT suitable as a confidence percentage threshold.
+        confidence = top.get("vision_score", 0)
 
         common_name = taxon.get("preferred_common_name") or taxon.get("name", "Unknown")
         scientific_name = taxon.get("name", "Unknown")
@@ -102,7 +123,7 @@ def identify_bird(image_path: str, min_confidence: float = 0.10) -> dict | None:
 
         if confidence < min_confidence:
             log.info(
-                f"Low confidence result: {common_name} ({confidence:.1%}) "
+                f"Low confidence bird: {common_name} ({confidence:.1%}) "
                 f"— below threshold {min_confidence:.0%}, skipping"
             )
             return None
@@ -115,17 +136,19 @@ def identify_bird(image_path: str, min_confidence: float = 0.10) -> dict | None:
         }
 
         log.info(
-            f"ID result: {common_name} ({scientific_name}) "
+            f"Bird identified: {common_name} ({scientific_name}) "
             f"— confidence {confidence:.1%}"
         )
 
-        # Log runner-up for reference
+        # Log runner-up for reference (if also a bird)
         if len(results) > 1:
             runner = results[1]
             runner_taxon = runner.get("taxon", {})
             runner_name = runner_taxon.get("preferred_common_name", runner_taxon.get("name", "?"))
-            runner_conf = runner.get("combined_score", runner.get("vision_score", 0))
-            log.info(f"  Runner-up: {runner_name} ({runner_conf:.1%})")
+            runner_conf = runner.get("vision_score", 0)
+            runner_iconic = runner_taxon.get("iconic_taxon_name")
+            if runner_iconic == "Aves":
+                log.info(f"  Runner-up: {runner_name} ({runner_conf:.1%})")
 
         return result
 
