@@ -44,6 +44,19 @@ Work through these in a dedicated session.
 
 ---
 
+## scripts/refresh_inat_token.py
+
+- [ ] iNaturalist OAuth app registration requires account to be 2+ months old
+      AND 10 improving identifications made for other users in the last month.
+      Until qualified: manually refresh token daily at
+      https://www.inaturalist.org/users/api_token and paste into config/.env.
+      No service restart needed after updating the token.
+      Once qualified, register app at https://www.inaturalist.org/oauth/applications/new
+      and add INAT_USERNAME, INAT_PASSWORD, INAT_APP_ID, INAT_APP_SECRET to config/.env,
+      then install the cron job (see script header for instructions).
+
+---
+
 ## camera/identify.py + database/db.py
 
 - [ ] Only generate Cornell Lab links when iNaturalist result is a bird
