@@ -44,6 +44,20 @@ Work through these in a dedicated session.
 
 ---
 
+## camera/identify.py + database/db.py
+
+- [ ] Only generate Cornell Lab links when iNaturalist result is a bird
+      (check `iconic_taxon_name == "Aves"` in API response before building URLs)
+- [ ] Fix eBird URL format — eBird uses 6-letter species codes (e.g. `houfin`)
+      not common name slugs. Look up correct code via eBird API or iNaturalist
+      taxon data
+- [ ] Update `min_confidence` threshold in identify.py to use a meaningful
+      cutoff on the raw score (suggest 50) rather than 0.10 which is ineffective
+- [ ] Add Samba file share setup to /docs or /scripts for PC access to captures
+      and database
+
+---
+
 ## camera/bird_capture.py
 
 - [ ] Update SAVE_DIR to NAS NFS mount path once NAS is built
