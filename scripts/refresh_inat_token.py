@@ -19,8 +19,8 @@ Prerequisites:
   Save the App ID and Secret to config/.env
 
 Required .env entries:
-  INAT_USERNAME=your_inaturalist_username
-  INAT_PASSWORD=your_inaturalist_password
+  INAT_USERNAME=JanaCline
+  INAT_PASSWORD=rwa1hjq!mef5bwc3YKQ
   INAT_APP_ID=your_oauth_app_id
   INAT_APP_SECRET=your_oauth_app_secret
 
