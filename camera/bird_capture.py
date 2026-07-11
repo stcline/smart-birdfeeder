@@ -51,7 +51,7 @@ CAPTURE_RESOLUTION = (4056, 3040)
 # Lower = more sensitive (more false triggers)
 # Higher = less sensitive (may miss small birds)
 MOTION_THRESHOLD = 25       # pixel difference to count as changed
-MOTION_MIN_PIXELS = 500     # lowered — only claws visible on initial landing
+MOTION_MIN_PIXELS = 3000    # raised — filters empty-frame triggers; bird landing ~9500px
 
 # Perch ROI — polygon defining the feeder perch area in lores (640x480) coords
 # Only motion inside this polygon triggers a capture
