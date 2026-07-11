@@ -30,6 +30,7 @@ from libcamera import controls
 # Add project root to path for database module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from camera.identify import identify_bird
+from camera.notify import send_bird_alert
 from database.db import init_db, log_sighting
 
 # ─── SUPPRESS LIBCAMERA NOISE ────────────────────────────────────────────────
@@ -192,6 +193,15 @@ def capture_bird(cam):
 
     # ── Species identification ──────────────────────────────────────────
     id_result = identify_bird(filepath)
+
+    # ── Push notification ─────────────────────────────────────────────
+    if id_result:
+        send_bird_alert(
+            common_name=id_result["common_name"],
+            scientific_name=id_result["scientific_name"],
+            confidence=id_result["confidence"],
+            image_path=filepath,
+        )
 
     # ── Log to database ────────────────────────────────────────────────
     log_sighting(
