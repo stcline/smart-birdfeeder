@@ -123,8 +123,8 @@ def identify_bird(image_path: str, min_confidence: float = MIN_CONFIDENCE) -> di
 
         if confidence < min_confidence:
             log.info(
-                f"Low confidence bird: {common_name} ({confidence:.1%}) "
-                f"— below threshold {min_confidence:.0%}, skipping"
+                f"Low confidence bird: {common_name} (score={confidence:.2f}) "
+                f"— below threshold {min_confidence:.2f}, skipping"
             )
             return None
 
@@ -137,7 +137,7 @@ def identify_bird(image_path: str, min_confidence: float = MIN_CONFIDENCE) -> di
 
         log.info(
             f"Bird identified: {common_name} ({scientific_name}) "
-            f"— confidence {confidence:.1%}"
+            f"— score {confidence:.2f}"
         )
 
         # Log runner-up for reference (if also a bird)
@@ -148,7 +148,7 @@ def identify_bird(image_path: str, min_confidence: float = MIN_CONFIDENCE) -> di
             runner_conf = runner.get("vision_score", 0)
             runner_iconic = runner_taxon.get("iconic_taxon_name")
             if runner_iconic == "Aves":
-                log.info(f"  Runner-up: {runner_name} ({runner_conf:.1%})")
+                log.info(f"  Runner-up: {runner_name} (score={runner_conf:.2f})")
 
         return result
 

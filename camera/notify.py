@@ -70,7 +70,7 @@ def send_bird_alert(
     title = f"Bird spotted: {common_name}"
     message = (
         f"{common_name} ({scientific_name})\n"
-        f"Confidence: {confidence:.0%}"
+        f"Score: {confidence:.2f}"
     )
 
     data = {
